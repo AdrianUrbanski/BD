@@ -4,7 +4,7 @@ CREATE TABLE nodes (
     location geography(POINT)
 );
 
-CRETE TABLE trip_catalog (
+CREATE TABLE trip_catalog (
     version INTEGER PRIMARY KEY,
     nodes INTEGER [],
     distance INTEGER
