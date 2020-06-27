@@ -5,7 +5,7 @@ from postgis import Point
 from postgis.psycopg import register
 
 
-def main():
+def main(argv):
     try:
         connection = psycopg2.connect(user="app",
                                       password="qwerty",
@@ -15,11 +15,16 @@ def main():
 
         cursor = connection.cursor()
 
+        if len(argv):
+            if len(argv) > 1 or argv[0] != "--init":
+                raise Exception('Invalid arguments. Usage: app.py [--init]')
+            cursor.execute(open("init.sql", "r").read())
+            print("{\"status\": \"OK\"}")
+
         for line in sys.stdin:
             delegate(cursor, json.loads(line))
 
-        cursor.execute("SELECT * FROM nodes")
-        print(cursor.fetchall())
+        connection.commit()
 
     except (Exception, psycopg2.Error) as error:
         print("There's been a problem: ", error)
@@ -68,4 +73,4 @@ def trip(cursor, cyclist, date, version):
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

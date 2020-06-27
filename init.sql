@@ -12,15 +12,14 @@ CREATE TABLE trip_catalog (
 
 CREATE TABLE trips (
     id SERIAL PRIMARY KEY,
-    cyclist INTEGER,
+    cyclist TEXT,
     version INTEGER REFERENCES trip_catalog(version),
     start_date DATE
 );
 
 CREATE TABLE guests (
-    cyclist INTEGER,
+    cyclist TEXT,
     node INTEGER REFERENCES nodes(node),
     stay_date DATE,
     PRIMARY KEY (cyclist, node, stay_date)
 );
-
