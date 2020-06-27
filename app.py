@@ -1,8 +1,6 @@
 import psycopg2
 import sys
 import json
-from postgis import Point
-from postgis.psycopg import register
 
 
 def main(argv):
@@ -11,7 +9,6 @@ def main(argv):
                                       password="qwerty",
                                       host="localhost",
                                       database="student")
-        register(connection)
 
         cursor = connection.cursor()
 
@@ -38,38 +35,65 @@ def main(argv):
 def delegate(cursor, querry):
     # Why is there no pattern matching in Python? ;_;
     if querry["function"] == "node":
-        node(cursor, querry["body"]["node"], querry["body"]["lat"], querry["body"]["lon"], querry["body"]["description"])
+        node(cursor, querry["body"]["node"], querry["body"]["lon"], querry["body"]["lat"],
+             querry["body"]["description"])
     elif querry["function"] == "catalog":
         catalog(cursor, querry["body"]["version"], querry["body"]["nodes"])
     elif querry["function"] == "trip":
         trip(cursor, querry["body"]["cyclist"], querry["body"]["date"], querry["body"]["version"])
+    elif querry["function"] == "closest_nodes":
+        closest_nodes(cursor, querry["body"]["ilon"], querry["body"]["ilat"])
 
 
-def node(cursor, node_id, lat, lon, description):
-    cursor.execute("""
+def node(cursor, node_id, lon, lat, description):
+    cursor.execute(
+        """
         INSERT INTO nodes (node, description, location)
-        VALUES (%s, %s, %s);
+        VALUES (%s, %s, ST_MakePoint(%s, %s)::geography);
         """,
-        (node_id, description, Point(lat, lon)))
-    print("{\"status\": \"OK\"}")
+        (node_id, description, lon, lat))
+    print({"status": "OK"})
 
 
 def catalog(cursor, version, nodes):
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO trip_catalog (version, nodes, distance)
         VALUES (%s, %s, %s);
         """,
         (version, nodes, None))
-    print("{\"status\": \"OK\"}")
+    print({"status": "OK"})
 
 
 def trip(cursor, cyclist, date, version):
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO trips (cyclist, version, start_date)
         VALUES (%s, %s, %s);
         """,
         (cyclist, version, date))
-    print("{\"status\": \"OK\"}")
+    print({"status": "OK"})
+
+
+def closest_nodes(cursor, lon, lat):
+    cursor.execute(
+        """
+        SELECT node, ST_Y(location::geometry), ST_X(location::geometry), 
+            ST_Distance(location, ST_MakePoint(%s, %s)::geography)
+        FROM nodes
+        ORDER BY 4 ASC, 1 ASC 
+        LIMIT 3;
+        """,
+        (lon, lat))
+    data = []
+    for record in cursor:
+        data.append({
+            "node": record[0],
+            "olat": record[1],
+            "olon": record[2],
+            "distance": round(record[3])
+        })
+    print({"status": "OK", "data": data})
 
 
 if __name__ == "__main__":
