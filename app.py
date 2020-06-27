@@ -4,6 +4,8 @@ import json
 
 
 def main(argv):
+    connection = None
+    cursor = None
     try:
         connection = psycopg2.connect(user="app",
                                       password="qwerty",
