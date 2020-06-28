@@ -50,6 +50,8 @@ def delegate(cursor, querry):
         closest_nodes(cursor, body["ilon"], body["ilat"])
     elif querry["function"] == "guests":
         guests(cursor, body["node"], body["date"])
+    elif querry["function"] == "party":
+        party(cursor, body["icyclist"], body["date"])
 
 
 def node(cursor, node_id, lon, lat, description):
@@ -98,7 +100,7 @@ def trip(cursor, cyclist, date, version):
         INSERT INTO guests(cyclist, node, stay_date)
         VALUES %s
         """,
-        accommodations
+        (accommodations,)
     )
     print({"status": "OK"})
 
@@ -120,6 +122,40 @@ def closest_nodes(cursor, lon, lat):
             "olat": record[1],
             "olon": record[2],
             "distance": round(record[3])
+        })
+    print({"status": "OK", "data": data})
+
+
+def party(cursor, cyclist, date):
+    cursor.execute(
+        """
+        SELECT ST_Y(location::geometry), ST_X(location::geometry)
+        FROM guests JOIN nodes USING (node)
+        WHERE cyclist = %s AND stay_date = %s;
+        """,
+        (cyclist, date)
+    )
+    if cursor.rowcount == 0:
+        print({"status": "OK", "data": []})
+        return
+    location = cursor.fetchone()
+    cursor.execute(
+        """
+        SELECT cyclist, node, ST_Distance(location, ST_MakePoint(%s, %s)::geography)
+        FROM guests JOIN nodes USING (node)
+        WHERE ST_DWithin(location, ST_MakePoint(%s, %s)::geography, 20000)
+        AND stay_date = %s
+        AND cyclist <> %s
+        ORDER BY 3 ASC, 1 ASC;
+        """,
+        (location[0], location[1], location[0], location[1], date, cyclist)
+    )
+    data = []
+    for record in cursor:
+        data.append({
+            "ocyclist": record[0],
+            "node": record[1],
+            "distance": round(record[2])
         })
     print({"status": "OK", "data": data})
 
