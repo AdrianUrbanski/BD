@@ -39,15 +39,17 @@ def main(argv):
 
 def delegate(cursor, querry):
     # Why is there no pattern matching in Python? ;_;
+    body = querry["body"]
     if querry["function"] == "node":
-        node(cursor, querry["body"]["node"], querry["body"]["lon"], querry["body"]["lat"],
-             querry["body"]["description"])
+        node(cursor, body["node"], body["lon"], body["lat"], body["description"])
     elif querry["function"] == "catalog":
-        catalog(cursor, querry["body"]["version"], querry["body"]["nodes"])
+        catalog(cursor, body["version"], body["nodes"])
     elif querry["function"] == "trip":
-        trip(cursor, querry["body"]["cyclist"], querry["body"]["date"], querry["body"]["version"])
+        trip(cursor, body["cyclist"], body["date"], body["version"])
     elif querry["function"] == "closest_nodes":
-        closest_nodes(cursor, querry["body"]["ilon"], querry["body"]["ilat"])
+        closest_nodes(cursor, body["ilon"], body["ilat"])
+    elif querry["function"] == "guests":
+        guests(cursor, body["node"], body["date"])
 
 
 def node(cursor, node_id, lon, lat, description):
@@ -118,6 +120,22 @@ def closest_nodes(cursor, lon, lat):
             "olat": record[1],
             "olon": record[2],
             "distance": round(record[3])
+        })
+    print({"status": "OK", "data": data})
+
+
+def guests(cursor, node, date):
+    cursor.execute(
+        """
+        SELECT cyclist FROM guests
+        WHERE stay_date = %s AND node = %s
+        ORDER BY 1 ASC;
+        """,
+        (date, node))
+    data = []
+    for record in cursor:
+        data.append({
+            "cyclist": record[0]
         })
     print({"status": "OK", "data": data})
 
