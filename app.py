@@ -1,6 +1,9 @@
 import psycopg2
 import sys
 import json
+from datetime import datetime
+from datetime import timedelta
+from psycopg2.extras import execute_values
 
 
 def main(argv):
@@ -74,6 +77,27 @@ def trip(cursor, cyclist, date, version):
         VALUES (%s, %s, %s);
         """,
         (cyclist, version, date))
+    cursor.execute(
+        """
+        SELECT nodes FROM trip_catalog
+        WHERE version = %s
+        """,
+        (version,)
+    )
+    nodes = cursor.fetchone()[0]
+    date = datetime.strptime(date, "%Y-%m-%d")
+    accommodations = []
+    for place in nodes[1:-1]:
+        accommodations.append((cyclist, place, date.strftime("%Y-%m-%d")))
+        date += timedelta(days=1)
+    execute_values(
+        cursor,
+        """
+        INSERT INTO guests(cyclist, node, stay_date)
+        VALUES %s
+        """,
+        accommodations
+    )
     print({"status": "OK"})
 
 
