@@ -114,10 +114,10 @@ def closest_nodes(cursor, lon, lat):
         SELECT node, ST_Y(location::geometry), ST_X(location::geometry), 
             ST_Distance(location, ST_MakePoint(%s, %s)::geography)
         FROM nodes
-        ORDER BY 4 ASC, 1 ASC 
+        ORDER BY location <-> (ST_MakePoint(%s, %s)::geography), 1 ASC 
         LIMIT 3;
         """,
-        (lon, lat))
+        (lon, lat, lon, lat))
     data = []
     for record in cursor:
         data.append({
