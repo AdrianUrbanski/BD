@@ -37,20 +37,20 @@ def main(argv):
             connection.close()
 
 
-def delegate(cursor, querry):
+def delegate(cursor, query):
     # Why is there no pattern matching in Python? ;_;
-    body = querry["body"]
-    if querry["function"] == "node":
+    body = query["body"]
+    if query["function"] == "node":
         node(cursor, body["node"], body["lon"], body["lat"], body["description"])
-    elif querry["function"] == "catalog":
+    elif query["function"] == "catalog":
         catalog(cursor, body["version"], body["nodes"])
-    elif querry["function"] == "trip":
+    elif query["function"] == "trip":
         trip(cursor, body["cyclist"], body["date"], body["version"])
-    elif querry["function"] == "closest_nodes":
+    elif query["function"] == "closest_nodes":
         closest_nodes(cursor, body["ilon"], body["ilat"])
-    elif querry["function"] == "guests":
+    elif query["function"] == "guests":
         guests(cursor, body["node"], body["date"])
-    elif querry["function"] == "party":
+    elif query["function"] == "party":
         party(cursor, body["icyclist"], body["date"])
 
 
