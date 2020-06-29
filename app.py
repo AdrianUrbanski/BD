@@ -132,7 +132,7 @@ def closest_nodes(cursor, lon, lat):
 def party(cursor, cyclist, date):
     cursor.execute(
         """
-        SELECT ST_Y(location::geometry), ST_X(location::geometry)
+        SELECT ST_X(location::geometry), ST_Y(location::geometry)
         FROM guests JOIN nodes USING (node)
         WHERE cyclist = %s AND stay_date = %s;
         """,
