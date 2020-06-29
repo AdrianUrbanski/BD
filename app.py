@@ -53,6 +53,8 @@ def delegate(cursor, query):
         guests(cursor, body["node"], body["date"])
     elif query["function"] == "party":
         party(cursor, body["icyclist"], body["date"])
+    elif query["function"] == "cyclists":
+        cyclists(cursor, body["limit"])
 
 
 def node(cursor, node_id, lon, lat, description):
@@ -173,6 +175,27 @@ def guests(cursor, node, date):
     for record in cursor:
         data.append({
             "cyclist": record[0]
+        })
+    print({"status": "OK", "data": data})
+
+
+def cyclists(cursor, limit):
+    cursor.execute(
+        """
+        SELECT cyclist, COUNT(distance), SUM(distance)
+        FROM trips JOIN trip_catalog USING (version)
+        GROUP BY cyclist
+        ORDER BY 3 ASC, 1 ASC
+        LIMIT %s;
+        """,
+        (limit,)
+    )
+    data = []
+    for record in cursor:
+        data.append({
+            "cyclist": record[0],
+            "no_trips": record[1],
+            "distance": round(record[2])
         })
     print({"status": "OK", "data": data})
 
