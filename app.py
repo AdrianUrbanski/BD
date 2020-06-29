@@ -21,6 +21,7 @@ def main(argv):
             if len(argv) > 1 or argv[0] != "--init":
                 raise Exception('Invalid arguments. Usage: app.py [--init]')
             cursor.execute(open("init.sql", "r").read())
+            cursor.execute(open("calc_dist.sql", "r").read())
             print("{\"status\": \"OK\"}")
 
         for line in sys.stdin:
@@ -68,9 +69,9 @@ def catalog(cursor, version, nodes):
     cursor.execute(
         """
         INSERT INTO trip_catalog (version, nodes, distance)
-        VALUES (%s, %s, %s);
+        VALUES (%s, %s, calculate_distance(%s));
         """,
-        (version, nodes, None))
+        (version, nodes, nodes))
     print({"status": "OK"})
 
 
@@ -100,7 +101,7 @@ def trip(cursor, cyclist, date, version):
         INSERT INTO guests(cyclist, node, stay_date)
         VALUES %s
         """,
-        (accommodations,)
+        accommodations
     )
     print({"status": "OK"})
 

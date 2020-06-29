@@ -6,8 +6,8 @@ CREATE TABLE nodes (
 
 CREATE TABLE trip_catalog (
     version INTEGER PRIMARY KEY,
-    nodes INTEGER [],
-    distance INTEGER
+    nodes INTEGER[],
+    distance FLOAT
 );
 
 CREATE TABLE trips (
