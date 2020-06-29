@@ -21,7 +21,7 @@ CREATE TABLE guests (
     cyclist TEXT,
     node INTEGER REFERENCES nodes(node),
     stay_date DATE,
-    PRIMARY KEY (cyclist, node, stay_date)
+    PRIMARY KEY (cyclist, stay_date)
 );
 
 CREATE INDEX nodes_btree_node ON nodes USING btree(node);
