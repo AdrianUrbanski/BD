@@ -21,7 +21,6 @@ def main(argv):
             if len(argv) > 1 or argv[0] != "--init":
                 raise Exception('Invalid arguments. Usage: app.py [--init]')
             cursor.execute(open("init.sql", "r").read())
-            cursor.execute(open("calc_dist.sql", "r").read())
             print("{\"status\": \"OK\"}")
 
         for line in sys.stdin:
